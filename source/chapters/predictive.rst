@@ -1,0 +1,10 @@
+Supervised learning
+====================
+
+
+Classification
+---------------
+
+
+Regression
+-----------

@@ -1,3 +1,4 @@
 build/
-code/
-chapters/
+develop/
+code/data/*.npy
+code/data/*.pkl

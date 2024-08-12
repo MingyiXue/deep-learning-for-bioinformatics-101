@@ -15,6 +15,6 @@ The web pages are available [here](https://mingyixue.github.io/deep-learning-for
 conda create -n sphinx python=3.10
 conda activate sphinx
 python -m pip install -U sphinx
-pip install furo
+pip install nbsphinx furo IPython pandoc
 make html
 ```

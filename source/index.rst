@@ -12,6 +12,7 @@ Welcome to Deep Learning in Bioinformatics 101!
    :caption: Contents:
       
    resources
+   chapters/quickstart
 
 
 .. note::

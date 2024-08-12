@@ -13,12 +13,19 @@ author = 'Mingyi Xue'
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = []
+extensions = [
+    "nbsphinx",
+    'sphinx.ext.mathjax',
+    'sphinx.ext.autodoc',
+    'sphinx.ext.napoleon'
+]
+
+# nbsphinx specific configuration
+nbsphinx_allow_errors = True  # allow errors in your notebooks
+nbsphinx_execute = 'always'  # this can be also set to 'never' or 'auto'
 
 templates_path = ['_templates']
 exclude_patterns = []
-
-
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
