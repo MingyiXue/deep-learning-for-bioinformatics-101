@@ -7,5 +7,4 @@ Quickstart
 
     quickstart/intro
     quickstart/setup_envs
-    quickstart/examples
 
