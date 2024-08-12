@@ -2,8 +2,7 @@ The research field of chem/bio-informatics with deep learning is quickly evolvin
 
 ## Quick Notebook Execution
 
-Jupyter notebooks are runnable interactively using `Binder`.
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/MingyiXue/deep-learning-for-bioinformatics-101/develop?labpath=code)
+Jupyter notebooks are runnable interactively, supported by [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/MingyiXue/deep-learning-for-bioinformatics-101/develop?labpath=code). It may take some time to build the environment.
 
 
 ## Topic Plans
