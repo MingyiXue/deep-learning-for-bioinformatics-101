@@ -1,5 +1,11 @@
 The research field of chem/bio-informatics with deep learning is quickly evolving, highly competitive and comprehensively interdiscplined, which is the major motivation to wrap up this tutorial.
 
+## Quick Notebook Execution
+
+Jupyter notebooks are runnable interactively using `Binder`.
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/MingyiXue/deep-learning-for-bioinformatics-101/develop?labpath=code)
+
+
 ## Topic Plans
 - [ ] Quick start
 - [ ] Dataset
@@ -9,7 +15,7 @@ The research field of chem/bio-informatics with deep learning is quickly evolvin
 - [ ] Useful packages
 - [x] Resources
 
-## Compiling Environment
+## Compiling Document Environment
 The web pages are available [here](https://mingyixue.github.io/deep-learning-for-bioinformatics-101/), but you can also compile this documentation locally:
 ```bash
 conda create -n sphinx python=3.10
@@ -19,7 +25,3 @@ pip install nbsphinx furo IPython pandoc
 make html
 ```
 
-## Quick Execution
-
-Jupyter notebooks are runnable interactively using `Binder`.
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/MingyiXue/deep-learning-for-bioinformatics-101/develop?labpath=code)
