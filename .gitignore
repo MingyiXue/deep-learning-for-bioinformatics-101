@@ -1,3 +1,6 @@
+__pycache__
+*.npy
+*.pkl
 build/
 develop/
 code/data/*.npy
