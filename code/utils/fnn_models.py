@@ -41,14 +41,3 @@ class FCNNBtachModel(nn.Module):
             out = nn.ReLU()(out)
         out = self.fc(out)
         return out
-
-
-class SMILESModel(nn.Module):
-    def __init__(self, mask=True, ratio=0.15):
-        super(SMILESModel, self).__init__()
-        self.mask = mask
-        self.mask_ratio = ratio
-        raise NotImplemented
-    
-    def forward(self, smi_batch, smi_mask=None):
-        raise NotImplemented
