@@ -29,6 +29,8 @@ Novice Friendly Open Resources
       converting structures to molecular graphs, etc.
       `Tutorial <https://www.rdkit.org/docs/index.html>`__
 
+.. https://github.com/udacity/deep-learning-v2-pytorch/tree/master?tab=readme-ov-file
+
 .. note::
 
     Advanced resources focused on specific topics of deep learning or chem/bioinformatics will be updated in the future.
