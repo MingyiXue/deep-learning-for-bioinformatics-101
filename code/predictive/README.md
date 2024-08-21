@@ -8,6 +8,7 @@ The RMSE of literature reported pKa predictions is between 0.50 and 1. Such mode
 - [Machine learning meets pKa](https://github.com/czodrowskilab/Machine-learning-meets-pKa)
 - [MolGpKa](https://github.com/Xundrug/MolGpKa): graph neural network
 - [pkasolver](https://github.com/mayrf/pkasolver): graph isomorphism network
+- [Drug3D-Net](https://academic.oup.com/bib/article/22/5/bbab078/6210061): 3D CNN
 - [SMARTS of functional groups](https://github.com/rdkit/rdkit/blob/master/Data/FunctionalGroups.txt)
 - [RDKit Fragment Module Document](https://rdkit.org/docs/source/rdkit.Chem.Fragments.html)
 - [Introduction to SMILES](https://www.daylight.com/dayhtml/doc/theory/theory.smiles.html)
