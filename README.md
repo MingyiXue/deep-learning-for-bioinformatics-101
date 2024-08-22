@@ -1,7 +1,9 @@
 The research field of chem/bio-informatics with deep learning is quickly evolving, highly competitive and comprehensively interdiscplined, which is the major motivation to wrap up this tutorial.
 
-## Quick Notebook Execution
+## Quick Notebook Preview
+Preview of executed notebooks under [code/](https://nbviewer.org/github/MingyiXue/deep-learning-for-bioinformatics-101/tree/develop/code/) is supported by `nbviewer`.
 
+## Quick Notebook Execution
 Jupyter notebooks are runnable interactively, supported by [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/MingyiXue/deep-learning-for-bioinformatics-101/develop?labpath=code). It may take some time to build the environment.
 
 
