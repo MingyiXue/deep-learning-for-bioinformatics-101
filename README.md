@@ -7,10 +7,16 @@ Jupyter notebooks are runnable interactively, supported by [![Binder](https://my
 
 ## Topic Plans
 - [ ] Quick start
+    - [ ] Tutorials
+    - [x] Notebooks
 - [ ] Dataset
 - [ ] Data representations
 - [ ] Discriminative models
+    - [ ] Tutorials
+    - [x] Notebooks
 - [ ] Generative models
+    - [ ] Tutorials
+    - [ ] Notebooks
 - [ ] Useful packages
 - [x] Resources
 - [ ] Set up notebooks in Colab, Binder and nbviewer
@@ -21,7 +27,7 @@ The web pages are available [here](https://mingyixue.github.io/deep-learning-for
 conda create -n sphinx python=3.10
 conda activate sphinx
 python -m pip install -U sphinx
-pip install nbsphinx furo IPython pandoc
+pip install nbsphinx furo
 make html
 ```
 
