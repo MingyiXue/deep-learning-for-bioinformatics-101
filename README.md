@@ -13,6 +13,7 @@ Jupyter notebooks are runnable interactively, supported by [![Binder](https://my
 - [ ] Generative models
 - [ ] Useful packages
 - [x] Resources
+- [ ] Set up notebooks in Colab, Binder and nbviewer
 
 ## Compiling Document Environment
 The web pages are available [here](https://mingyixue.github.io/deep-learning-for-bioinformatics-101/), but you can also compile this documentation locally:
