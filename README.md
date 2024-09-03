@@ -35,6 +35,7 @@ python -m pip install -U sphinx
 pip install nbsphinx furo
 pip install nbconvert nbformat
 pip install pandoc
+pip install sphinx-design
 make html
 ```
 

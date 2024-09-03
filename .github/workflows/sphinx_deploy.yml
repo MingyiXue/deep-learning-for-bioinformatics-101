@@ -24,6 +24,7 @@ jobs:
           pip install sphinx nbsphinx furo
           pip install nbconvert nbformat
           pip install pandoc
+          pip install sphinx-design
       - name: Sphinx build
         run: |
           sphinx-build source build
