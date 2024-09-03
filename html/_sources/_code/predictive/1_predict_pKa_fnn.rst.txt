@@ -1,0 +1,324 @@
+Predict pKa using FNN
+=====================
+
+Import Packages
+---------------
+
+.. code:: ipython3
+
+    import os
+    import pickle
+    import rdkit.Chem as Chem
+    import rdkit.Chem.AllChem as AllChem
+    from rdkit.Chem import PandasTools
+    import rdkit.Chem.Fragments as Fragments
+    
+    import random
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import torch
+    import torch.nn as nn
+    from torch.utils.data import TensorDataset, DataLoader
+    
+    import sys
+    curr_dir = os.path.abspath(".")
+    util_dir = os.path.join(os.path.dirname(curr_dir))
+    sys.path.append(util_dir)
+    from utils.fnn_models import FCNNModel as Model
+
+Curate Dataset
+--------------
+
+.. code:: ipython3
+
+    infile = "../data/combined_training_datasets_unique.sdf"
+    name = os.path.splitext(os.path.basename(infile))[0]
+    
+    all_df = PandasTools.LoadSDF(infile)
+    all_df.head()
+
+
+.. parsed-literal::
+
+    [11:17:31] Warning: ambiguous stereochemistry - overlapping neighbors  - at atom 13 ignored
+
+
+
+
+.. raw:: html
+
+    <div>
+    <style scoped>
+        .dataframe tbody tr th:only-of-type {
+            vertical-align: middle;
+        }
+    
+        .dataframe tbody tr th {
+            vertical-align: top;
+        }
+    
+        .dataframe thead th {
+            text-align: right;
+        }
+    </style>
+    <table border="1" class="dataframe">
+      <thead>
+        <tr style="text-align: right;">
+          <th></th>
+          <th>pKa</th>
+          <th>marvin_pKa</th>
+          <th>marvin_atom</th>
+          <th>marvin_pKa_type</th>
+          <th>original_dataset</th>
+          <th>ID</th>
+          <th>ROMol</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>0</th>
+          <td>6.21</td>
+          <td>6.09</td>
+          <td>10</td>
+          <td>basic</td>
+          <td>['chembl25']</td>
+          <td>1702768</td>
+          <td>&lt;rdkit.Chem.rdchem.Mol object at 0x7f670c189700&gt;</td>
+        </tr>
+        <tr>
+          <th>1</th>
+          <td>7.46</td>
+          <td>8.2</td>
+          <td>9</td>
+          <td>basic</td>
+          <td>['chembl25']</td>
+          <td>273537</td>
+          <td>&lt;rdkit.Chem.rdchem.Mol object at 0x7f670c18a030&gt;</td>
+        </tr>
+        <tr>
+          <th>2</th>
+          <td>4.2</td>
+          <td>3.94</td>
+          <td>9</td>
+          <td>basic</td>
+          <td>['datawarrior']</td>
+          <td>7175</td>
+          <td>&lt;rdkit.Chem.rdchem.Mol object at 0x7f670c18a0a0&gt;</td>
+        </tr>
+        <tr>
+          <th>3</th>
+          <td>3.73</td>
+          <td>5.91</td>
+          <td>8</td>
+          <td>acidic</td>
+          <td>['datawarrior']</td>
+          <td>998</td>
+          <td>&lt;rdkit.Chem.rdchem.Mol object at 0x7f670c189bd0&gt;</td>
+        </tr>
+        <tr>
+          <th>4</th>
+          <td>11.0</td>
+          <td>8.94</td>
+          <td>13</td>
+          <td>basic</td>
+          <td>['chembl25']</td>
+          <td>560562</td>
+          <td>&lt;rdkit.Chem.rdchem.Mol object at 0x7f670c189d20&gt;</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+
+
+.. code:: ipython3
+
+    patterns = []
+    for patstr in dir(Chem.Fragments):
+        if patstr.startswith("fr"):
+            patterns.append(patstr)
+    print(f"Number of fragment patterns: {len(patterns)}")
+    
+    PATTERNS = [getattr(Fragments, patstr) for patstr in patterns]
+    
+    def featurize(mol):
+        counts = [pattern(mol) for pattern in PATTERNS]
+        return counts
+    
+    X = []
+    Y = []
+    
+    for idx, row in all_df.iterrows():
+        x = featurize(row["ROMol"])
+        X.append(x)
+        Y.append(row["pKa"])
+    X = np.array(X, dtype=float)
+    Y = np.array(Y, dtype=float).reshape(-1, 1)
+
+
+.. parsed-literal::
+
+    Number of fragment patterns: 85
+
+
+Hyperparameters
+---------------
+
+.. code:: ipython3
+
+    # for reproduce purposes
+    SEED = 0
+    random.seed(SEED)
+    np.random.seed(SEED)
+    torch.manual_seed(SEED)
+    
+    datadir = "."
+    ratio = 0.1
+    batch_size = 256
+    epochs = 20
+    lr = 1e-2
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    
+    nsamples = X.shape[0]
+    ndim = X.shape[1]
+    print(f"Number of samples: {nsamples}, Dimension of features: {ndim}")
+    print(f"Shape of X: {X.shape}, shape of Y: {Y.shape}")
+
+
+.. parsed-literal::
+
+    Number of samples: 5994, Dimension of features: 85
+    Shape of X: (5994, 85), shape of Y: (5994, 1)
+
+
+Split dataset
+-------------
+
+.. code:: ipython3
+
+    val_size = int(nsamples*ratio)
+    val_indices = np.random.choice(nsamples, val_size, replace=False)
+    train_indices = set(range(nsamples)) - set(val_indices.tolist())
+    train_indices = list(train_indices)
+    X_train, Y_train = X[train_indices], Y[train_indices]
+    X_test, Y_test = X[val_indices], Y[val_indices]
+    print(f"Size of training set: {X_train.shape[0]}, Size of test set: {X_test.shape[0]}")
+    
+    X_train = torch.from_numpy(X_train).float()
+    Y_train = torch.from_numpy(Y_train).float()
+    X_test = torch.from_numpy(X_test).float()
+    Y_test = torch.from_numpy(Y_test).float()
+    train_loader = DataLoader(TensorDataset(X_train, Y_train), batch_size=batch_size, shuffle=True)
+    test_loader = DataLoader(TensorDataset(X_test, Y_test), batch_size=batch_size, shuffle=False)
+
+
+.. parsed-literal::
+
+    Size of training set: 5395, Size of test set: 599
+
+
+Model
+-----
+
+.. code:: ipython3
+
+    def train_epoch(dataloader, model, loss_func, optimizer, device):
+        model.train()
+        train_loss = []
+        for (x, y) in dataloader:
+                x, y = x.to(device), y.to(device)
+                optimizer.zero_grad()
+                y_pred = model(x)
+                loss = loss_func(y_pred, y)
+                loss.backward()
+                optimizer.step()
+                train_loss.append(loss.detach().cpu().numpy())
+        return np.mean(train_loss)
+    
+    def val_epoch(dataloader, loss_func, model, device):
+        model.eval()
+        val_loss = []
+        with torch.no_grad():
+            for (x, y) in dataloader:
+                x, y = x.to(device), y.to(device)
+                y_pred = model(x)
+                loss = loss_func(y_pred, y)
+                val_loss.append(loss.detach().cpu().numpy())
+        return np.mean(val_loss)
+
+Training
+--------
+
+.. code:: ipython3
+
+    model = Model(ndim, hidden_dims=[100, 50, 20])
+    # model = Model(ndim, hidden_dims=[]) # This would be a linear model implemented using PyTorch
+    model.to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    loss_func = nn.functional.mse_loss
+    
+    train_epoch_losses, test_epoch_losses = [], []
+    for n in range(epochs):
+        train_epoch_loss = train_epoch(train_loader, model, loss_func, optimizer, device)
+        val_epoch_loss = val_epoch(test_loader, loss_func, model, device)
+        train_epoch_losses.append(train_epoch_loss)
+        test_epoch_losses.append(val_epoch_loss)
+
+.. code:: ipython3
+
+    plt.plot(train_epoch_losses, label="Train")
+    plt.plot(test_epoch_losses, label="Test")
+    plt.legend()
+
+
+
+
+.. parsed-literal::
+
+    <matplotlib.legend.Legend at 0x7f661d883a00>
+
+
+
+
+.. image:: output_14_1.png
+
+
+Analysis
+--------
+
+.. code:: ipython3
+
+    model.eval()
+    with torch.no_grad():
+        truth = Y_test.to(device)
+        pred = model(X_test.to(device))
+        l = nn.functional.mse_loss(pred, truth)
+        print(l)
+    
+    xreg = np.linspace(2, 12, num=100)
+    yreg = xreg
+    plt.plot(xreg, yreg, 'r--', label="y=x")
+    plt.scatter(truth, pred)
+    plt.xlabel("Truth")
+    plt.ylabel("Prediction")
+    plt.axis("square")
+    plt.legend()
+
+
+.. parsed-literal::
+
+    tensor(1.9661)
+
+
+
+
+.. parsed-literal::
+
+    <matplotlib.legend.Legend at 0x7f6618837250>
+
+
+
+
+.. image:: output_16_2.png
+
+

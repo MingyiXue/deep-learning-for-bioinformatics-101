@@ -1,0 +1,165 @@
+Import Packages
+---------------
+
+.. code:: ipython3
+
+    import os
+    import rdkit.Chem as Chem
+    import rdkit.Chem.AllChem as AllChem
+    from rdkit.Chem import PandasTools
+    import rdkit.Chem.Fragments as Fragments
+    
+    import random
+    import numpy as np
+    import matplotlib.pyplot as plt
+    
+    import sys
+    curr_dir = os.path.abspath(".")
+    util_dir = os.path.join(os.path.dirname(curr_dir))
+    sys.path.append(util_dir)
+
+Curate Dataset
+--------------
+
+.. code:: ipython3
+
+    infile = "../data/combined_training_datasets_unique.sdf"
+    name = os.path.splitext(os.path.basename(infile))[0]
+    
+    all_df = PandasTools.LoadSDF(infile)
+    all_df.head()
+
+
+.. parsed-literal::
+
+    [12:04:31] Warning: ambiguous stereochemistry - overlapping neighbors  - at atom 13 ignored
+
+
+
+.. raw:: html
+
+    <div>
+    <style scoped>
+        .dataframe tbody tr th:only-of-type {
+            vertical-align: middle;
+        }
+    
+        .dataframe tbody tr th {
+            vertical-align: top;
+        }
+    
+        .dataframe thead th {
+            text-align: right;
+        }
+    </style>
+    <table border="1" class="dataframe">
+      <thead>
+        <tr style="text-align: right;">
+          <th></th>
+          <th>pKa</th>
+          <th>marvin_pKa</th>
+          <th>marvin_atom</th>
+          <th>marvin_pKa_type</th>
+          <th>original_dataset</th>
+          <th>ID</th>
+          <th>ROMol</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>0</th>
+          <td>6.21</td>
+          <td>6.09</td>
+          <td>10</td>
+          <td>basic</td>
+          <td>['chembl25']</td>
+          <td>1702768</td>
+          <td>&lt;rdkit.Chem.rdchem.Mol object at 0x7facb9571690&gt;</td>
+        </tr>
+        <tr>
+          <th>1</th>
+          <td>7.46</td>
+          <td>8.2</td>
+          <td>9</td>
+          <td>basic</td>
+          <td>['chembl25']</td>
+          <td>273537</td>
+          <td>&lt;rdkit.Chem.rdchem.Mol object at 0x7fabd750f5a0&gt;</td>
+        </tr>
+        <tr>
+          <th>2</th>
+          <td>4.2</td>
+          <td>3.94</td>
+          <td>9</td>
+          <td>basic</td>
+          <td>['datawarrior']</td>
+          <td>7175</td>
+          <td>&lt;rdkit.Chem.rdchem.Mol object at 0x7fabd750c660&gt;</td>
+        </tr>
+        <tr>
+          <th>3</th>
+          <td>3.73</td>
+          <td>5.91</td>
+          <td>8</td>
+          <td>acidic</td>
+          <td>['datawarrior']</td>
+          <td>998</td>
+          <td>&lt;rdkit.Chem.rdchem.Mol object at 0x7fabd750e5e0&gt;</td>
+        </tr>
+        <tr>
+          <th>4</th>
+          <td>11.0</td>
+          <td>8.94</td>
+          <td>13</td>
+          <td>basic</td>
+          <td>['chembl25']</td>
+          <td>560562</td>
+          <td>&lt;rdkit.Chem.rdchem.Mol object at 0x7fabd750d2a0&gt;</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+
+.. code:: ipython3
+
+    patterns = []
+    for patstr in dir(Chem.Fragments):
+        if patstr.startswith("fr"):
+            patterns.append(patstr)
+    print(f"Number of fragment patterns: {len(patterns)}")
+    
+    PATTERNS = [getattr(Fragments, patstr) for patstr in patterns]
+    
+    def featurize(mol):
+        counts = [pattern(mol) for pattern in PATTERNS]
+        return counts
+    
+    X = []
+    Y = []
+    
+    for idx, row in all_df.iterrows():
+        x = featurize(row["ROMol"])
+        X.append(x)
+        Y.append(row["pKa"])
+    X = np.array(X, dtype=float)
+    Y = np.array(Y, dtype=float).reshape(-1, 1)
+    Y = np.where(Y<7, 1, 0)
+
+
+.. parsed-literal::
+
+    Number of fragment patterns: 85
+
+
+Model
+-----
+
+
+Training
+--------
+
+
+Visualization
+-------------
+

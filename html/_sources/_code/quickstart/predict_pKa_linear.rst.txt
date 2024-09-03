@@ -1,0 +1,389 @@
+Predict pKa using Linear Regression
+===================================
+
+Import Packages
+---------------
+
+.. code:: ipython3
+
+    import os
+    import random
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import rdkit.Chem as Chem
+    from rdkit.Chem import PandasTools
+    import rdkit.Chem.Fragments as Fragments
+
+Curate Dataset
+--------------
+
+.. code:: ipython3
+
+    infile = "../data/combined_training_datasets_unique.sdf"
+    name = os.path.splitext(os.path.basename(infile))[0]
+    
+    all_df = PandasTools.LoadSDF(infile)
+    all_df.head()
+
+
+.. parsed-literal::
+
+    [11:19:13] Warning: ambiguous stereochemistry - overlapping neighbors  - at atom 13 ignored
+
+
+
+
+.. raw:: html
+
+    <div>
+    <style scoped>
+        .dataframe tbody tr th:only-of-type {
+            vertical-align: middle;
+        }
+    
+        .dataframe tbody tr th {
+            vertical-align: top;
+        }
+    
+        .dataframe thead th {
+            text-align: right;
+        }
+    </style>
+    <table border="1" class="dataframe">
+      <thead>
+        <tr style="text-align: right;">
+          <th></th>
+          <th>pKa</th>
+          <th>marvin_pKa</th>
+          <th>marvin_atom</th>
+          <th>marvin_pKa_type</th>
+          <th>original_dataset</th>
+          <th>ID</th>
+          <th>ROMol</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>0</th>
+          <td>6.21</td>
+          <td>6.09</td>
+          <td>10</td>
+          <td>basic</td>
+          <td>['chembl25']</td>
+          <td>1702768</td>
+          <td>&lt;rdkit.Chem.rdchem.Mol object at 0x7f0af2f75c40&gt;</td>
+        </tr>
+        <tr>
+          <th>1</th>
+          <td>7.46</td>
+          <td>8.2</td>
+          <td>9</td>
+          <td>basic</td>
+          <td>['chembl25']</td>
+          <td>273537</td>
+          <td>&lt;rdkit.Chem.rdchem.Mol object at 0x7f0ac84eeb20&gt;</td>
+        </tr>
+        <tr>
+          <th>2</th>
+          <td>4.2</td>
+          <td>3.94</td>
+          <td>9</td>
+          <td>basic</td>
+          <td>['datawarrior']</td>
+          <td>7175</td>
+          <td>&lt;rdkit.Chem.rdchem.Mol object at 0x7f0ac84eeb90&gt;</td>
+        </tr>
+        <tr>
+          <th>3</th>
+          <td>3.73</td>
+          <td>5.91</td>
+          <td>8</td>
+          <td>acidic</td>
+          <td>['datawarrior']</td>
+          <td>998</td>
+          <td>&lt;rdkit.Chem.rdchem.Mol object at 0x7f0ac84eec00&gt;</td>
+        </tr>
+        <tr>
+          <th>4</th>
+          <td>11.0</td>
+          <td>8.94</td>
+          <td>13</td>
+          <td>basic</td>
+          <td>['chembl25']</td>
+          <td>560562</td>
+          <td>&lt;rdkit.Chem.rdchem.Mol object at 0x7f0ac84eec70&gt;</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+
+
+.. code:: ipython3
+
+    patterns = []
+    for patstr in dir(Chem.Fragments):
+        if patstr.startswith("fr"):
+            patterns.append(patstr)
+    print(f"Number of fragment patterns: {len(patterns)}")
+    
+    PATTERNS = [getattr(Fragments, patstr) for patstr in patterns]
+    
+    def featurize(mol):
+        counts = [pattern(mol) for pattern in PATTERNS]
+        return counts
+    
+    X = []
+    Y = []
+    
+    for idx, row in all_df.iterrows():
+        x = featurize(row["ROMol"])
+        X.append(x)
+        Y.append(row["pKa"])
+    X = np.array(X, dtype=float)
+    Y = np.array(Y, dtype=float).reshape(-1, 1)
+    
+    print(f"Shape of X: {X.shape}, shape of Y: {Y.shape}")
+
+
+.. parsed-literal::
+
+    Number of fragment patterns: 85
+    Shape of X: (5994, 85), shape of Y: (5994, 1)
+
+
+Linear Regression
+-----------------
+
+.. code:: ipython3
+
+    # for reproduce purposes
+    SEED = 0
+    random.seed(SEED)
+    np.random.seed(SEED)
+    
+    datadir = "."
+    ratio = 0.1
+    epochs = 50
+    lr = 1e-5
+
+Split dataset
+-------------
+
+.. code:: ipython3
+
+    nsamples = X.shape[0]
+    val_size = int(nsamples*ratio)
+    val_indices = np.random.choice(nsamples, val_size, replace=False)
+    train_indices = set(range(nsamples)) - set(val_indices.tolist())
+    train_indices = list(train_indices)
+    X_train, Y_train = X[train_indices], Y[train_indices]
+    X_test, Y_test = X[val_indices], Y[val_indices]
+    print(f"Size of training set: {X_train.shape[0]}, Size of test set: {X_test.shape[0]}")
+
+
+.. parsed-literal::
+
+    Size of training set: 5395, Size of test set: 599
+
+
+Normalize dataset
+~~~~~~~~~~~~~~~~~
+
+.. code:: ipython3
+
+    avg = np.mean(X_train, axis=0)
+    std = np.std(X_train, axis=0)
+    
+    normalized_X_train = np.zeros_like(X_train)
+    normalized_X_test = np.zeros_like(X_test)
+    for i in range(X_train.shape[1]):
+        if np.isclose(std[i], 0):
+            normalized_X_train[:, i] = X_train[:, i]
+            normalized_X_test[:, i] = X_test[:, i]
+        else:
+            normalized_X_train[:, i] = (X_train[:, i]-avg[i])/std[i]
+            normalized_X_test[:, i] = (X_test[:, i]-avg[i])/std[i]
+    
+    # include bias in X
+    
+    X_train = np.hstack([np.ones(normalized_X_train.shape[0]).reshape(-1, 1), normalized_X_train])
+    X_test = np.hstack([np.ones(normalized_X_test.shape[0]).reshape(-1, 1), normalized_X_test])
+    
+    ndim = X_train.shape[1]
+    print(f"Number of samples: {nsamples}, Dimension of features: {ndim}")
+
+
+
+.. parsed-literal::
+
+    Number of samples: 5994, Dimension of features: 86
+
+
+Model
+-----
+
+Design model
+~~~~~~~~~~~~
+
+Assumption: For each :math:`\mathbf{\textit x}\in \mathbb{R}^{N}`,
+:math:`\textit y = \sum_{j=1}^{N} w_{i}*x_{i} + b`, or
+:math:`\textit y = \sum_{j=0}^{N} w_{i}*x_{i}` if combining ``bias`` to
+:math:`\mathbf{\textit x}`.
+
+.. code:: ipython3
+
+    def model(x, w):
+        pred = np.dot(x, w)
+        return pred
+    
+    def loss_fn(pred, truth):
+        return (pred-truth)**2
+    
+    def grad_fn(x, pred, truth):
+        dw = 2*(pred-truth)*x
+        return dw
+    
+    def optimize(w, dw):
+        w -= lr*dw
+        return w
+
+Training
+~~~~~~~~
+
+.. code:: ipython3
+
+    def run_one_epoch():
+        global W
+        losses = []
+        for idx in range(X_train.shape[0]):
+            truth = Y_train[idx]
+            x = X_train[idx]
+            pred = model(x, W)
+            l = loss_fn(pred, truth)
+            dw = grad_fn(x, pred, truth)
+            W = optimize(W, dw)
+            losses.append(l)
+        return np.mean(losses)
+    
+    def evaluate():
+        global W
+        losses = []
+        for idx in range(X_test.shape[0]):
+            truth = Y_test[idx]
+            x = X_test[idx]
+            pred = model(x, W)
+            l = loss_fn(pred, truth)
+            losses.append(l)
+        return np.mean(losses)
+
+.. code:: ipython3
+
+    W = np.zeros(ndim, dtype=float)
+    train_epoch_losses = []
+    test_epoch_losses = []
+    for idx in range(epochs):
+        l = run_one_epoch()
+        train_epoch_losses.append(l)
+        l = evaluate()
+        test_epoch_losses.append(l)
+
+.. code:: ipython3
+
+    plt.plot(train_epoch_losses, label="Train")
+    plt.plot(test_epoch_losses, label="Test")
+    plt.legend()
+
+
+
+
+.. parsed-literal::
+
+    <matplotlib.legend.Legend at 0x7f0ac8097b80>
+
+
+
+
+.. image:: output_18_1.png
+
+
+Analysis
+--------
+
+.. code:: ipython3
+
+    pred, truth = [], []
+    losses = []
+    for idx in range(X_test.shape[0]):
+        y_hat = model(X_test[idx], W)
+        y = Y_test[idx]
+        l = loss_fn(y_hat, y)
+        pred.append(y_hat)
+        truth.append(y)
+        losses.append(l)
+    
+    print(np.mean(losses))
+    
+    xreg = np.linspace(2, 12, num=100)
+    yreg = xreg
+    plt.plot(xreg, yreg, 'r--', label="y=x")
+    plt.scatter(truth, pred)
+    plt.xlabel("Truth")
+    plt.ylabel("Prediction")
+    plt.axis("square")
+    plt.legend()
+
+
+.. parsed-literal::
+
+    2.928089669669956
+
+
+
+
+.. parsed-literal::
+
+    <matplotlib.legend.Legend at 0x7f0af2607670>
+
+
+
+
+.. image:: output_20_2.png
+
+
+.. code:: ipython3
+
+    sorted_pairs = []
+    for idx in np.argsort(np.abs(W)[1:])[::-1]: 
+        # except bias
+        sorted_pairs.append((patterns[idx], W[1+idx]))
+        
+    topk = 10
+    print(f"Top-{topk} functional groups sorted by contribution")
+    print("Positive coeff cotributes to basicity, and negative vcoeff contributes to acidity")
+    print("Meanings of fragment names are available at https://github.com/rdkit/rdkit/blob/master/Data/FragmentDescriptors.csv")
+    print("="*40)
+    print(f"Functional Group\tCoeff")
+    for name, coeff in sorted_pairs[:topk]:
+        print(f"{name}\t{coeff}")
+
+
+.. parsed-literal::
+
+    Top-10 functional groups sorted by contribution
+    Positive coeff cotributes to basicity, and negative vcoeff contributes to acidity
+    Meanings of fragment names are available at https://github.com/rdkit/rdkit/blob/master/Data/FragmentDescriptors.csv
+    ========================================
+    Functional Group	Coeff
+    fr_quatN	0.8726475146654439
+    fr_guanido	0.33352466968694566
+    fr_NH2	0.3203331451707216
+    fr_ArN	-0.3108126155559602
+    fr_C_S	0.30734726340314644
+    fr_COO2	-0.26740191983779843
+    fr_COO	-0.2614939896974664
+    fr_Ar_N	-0.23981072692347344
+    fr_NH0	-0.23447141199229907
+    fr_phenol_noOrthoHbond	0.21187116753136884
+
+
