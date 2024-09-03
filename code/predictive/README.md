@@ -6,6 +6,7 @@ The RMSE of literature reported pKa predictions is between 0.50 and 1. Such mode
 
 ## References
 - [Machine learning meets pKa](https://github.com/czodrowskilab/Machine-learning-meets-pKa)
+- [ImageMol](https://github.com/ChengF-Lab/ImageMol)
 - [pkasolver](https://github.com/mayrf/pkasolver): graph isomorphism network
 - [Drug3D-Net](https://academic.oup.com/bib/article/22/5/bbab078/6210061): 3D CNN
 - [Explainable Graph Neural Networks with Data Augmentation for Predicting pKa of C–H Acids](https://pubs.acs.org/doi/10.1021/acs.jcim.3c00958)

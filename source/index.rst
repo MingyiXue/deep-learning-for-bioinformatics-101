@@ -14,6 +14,7 @@ Welcome to Deep Learning in Bioinformatics 101!
    resources
    chapters/quickstart
    chapters/predictive
+   chapters/generative
 
 
 .. note::

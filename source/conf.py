@@ -6,10 +6,6 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-# import os, sys
-# srcdir = os.path.abspath(__file__)
-# sys.path.insert(0, os.path.join(os.path.dirname(srcdir), "code"))
-
 project = 'Deep Learning in Bioinformatics 101'
 copyright = '2024, Mingyi Xue'
 author = 'Mingyi Xue'
@@ -18,15 +14,28 @@ author = 'Mingyi Xue'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    "nbsphinx",
+    # 'myst_nb',
+    # 'nbsphinx',
+    # 'sphinx_gallery.load_style',
+    # 'sphinx_gallery.gen_gallery',
     'sphinx.ext.mathjax',
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',   
 ]
 
 # nbsphinx specific configuration
-# nbsphinx_allow_errors = True  # allow errors in your notebooks
-# nbsphinx_execute = 'always'  # this can be also set to 'never' or 'auto'
+# sphinx_gallery_conf = {
+#     'examples_dirs': '../code',   # path to your example scripts
+#     'gallery_dirs': '_code',  # path to where to save gallery generated output
+#     'example_extensions': {'.ipynb'},
+#     'filename_pattern': r'.*\.ipynb',
+#     'ignore_pattern': r'__init__\.py',
+#     'only_warn_on_example_error': True
+# }
+
+nbsphinx_allow_errors = True  # allow errors in your notebooks
+nbsphinx_execute = 'never'  # this can be set to 'always' 'never' or 'auto'
+source_suffix = [".rst"]
 
 templates_path = ['_templates']
 exclude_patterns = []

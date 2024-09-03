@@ -21,8 +21,9 @@ jobs:
       - uses: actions/setup-python@v5
       - name: Install dependencies
         run: |
-          # pip install sphinx sphinx_rtd_theme myst_parser
           pip install sphinx nbsphinx furo
+          pip install nbconvert nbformat
+          pip install pandoc
       - name: Sphinx build
         run: |
           sphinx-build source build

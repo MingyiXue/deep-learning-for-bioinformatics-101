@@ -1,13 +1,13 @@
 Generative models
 ==================
 
-Unsupervised learning
-----------------------
+.. Unsupervised learning
+.. ----------------------
 
 
-Self-supervised learning
--------------------------
+.. Self-supervised learning
+.. -------------------------
 
 
-Diffusion-based model
-----------------------
+.. Diffusion-based model
+.. ----------------------

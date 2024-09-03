@@ -1,12 +1,19 @@
-Supervised learning
-====================
-Lets continue with the organic chemistry problem mentioned in the `Brief Intro <./quickstart/intro.rst>`_::
+Predictive Models
+==================
+.. Lets continue with the organic chemistry problem mentioned in the `Brief Intro <./quickstart/intro.rst>`_::
 
-    How to predict the pKa of a small organic molecule?
+..     Classification model: Predict whether a small organic molecule is acidic or basic
+    
+..     Regression model: Predict the pKa value of a small organic molecule?
 
-Classification
----------------
+.. toctree::
+    :maxdepth: 1
+    :caption: Contents:
 
-
-Regression
------------
+    predictive/classification
+    predictive/regression
+    ../_code/predictive/1_predict_pKa_fnn
+    ../_code/predictive/2_predict_pKa_fnn_batchnorm
+    ../_code/predictive/3_predict_pKa_fp_fnn
+    ../_code/predictive/4_predict_pKa_gnn
+    ../_code/predictive/5_predict_pKa_SMILES_rnn_prepad_augmented

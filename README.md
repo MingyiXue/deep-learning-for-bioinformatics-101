@@ -33,6 +33,8 @@ conda create -n sphinx python=3.10
 conda activate sphinx
 python -m pip install -U sphinx
 pip install nbsphinx furo
+pip install nbconvert nbformat
+pip install pandoc
 make html
 ```
 
