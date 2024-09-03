@@ -7,4 +7,4 @@ torchvision==0.19.0
 torch_geometric==2.5.3
 # deepchem==2.8.0
 # transformers==4.44.0
-nbgitpuller
+# nbgitpuller
